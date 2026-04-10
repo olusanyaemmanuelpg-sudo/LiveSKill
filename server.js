@@ -32,8 +32,12 @@ app.use('/auth', require('./routes/api/auth'));
 app.use('/refresh', require('./routes/api/refresh'));
 app.use('/logout', require('./routes/api/logout'));
 
+app.use('/livestream', require('./routes/api/livekitStream'));
+
 // Example protected route for testing JWT expiration/redirect
-app.use('/liveskill', verifyJWT, (req, res) => {
+app.use(verifyJWT);
+
+app.use('/liveskill', (req, res) => {
 	res.json({ message: 'You have access to a protected route!' });
 });
 
