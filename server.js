@@ -11,6 +11,10 @@ const verifyJWT = require('./middleware/verifyJWT');
 const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 3000;
 
+//for socket.io
+const http = require('http');
+const { Server } = require('socket.io');
+
 //Connect to mongoDB
 connectDB();
 
@@ -43,5 +47,54 @@ app.use('/liveskill', (req, res) => {
 
 mongoose.connection.once('open', () => {
 	console.log('Connected to mongoDB');
-	app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+	const server = http.createServer(app);
+
+	const io = new Server(server, {
+		cors: {
+			origin: 'http://localhost:5173',
+			credentials: true,
+		},
+	});
+
+	io.on('connection', (socket) => {
+		console.log('User connected:', socket.id);
+
+		socket.on('join-room', async (roomName) => {
+			socket.join(roomName);
+
+			// get number of users in room (fetchSockets returns an array)
+			const clients = await io.in(roomName).fetchSockets();
+			const count = clients.length;
+
+			// broadcast updated count to everyone in the room
+			io.to(roomName).emit('viewer-count', count);
+
+			console.log(`Users in ${roomName}:`, count);
+		});
+
+		socket.on('send-message', ({ roomName, message, user }) => {
+			io.to(roomName).emit('receive-message', {
+				message,
+				user,
+				time: new Date(),
+			});
+		});
+
+		socket.on('disconnecting', async () => {
+			const rooms = [...socket.rooms]; // snapshot before leaving
+
+			for (const roomName of rooms) {
+				// Skip the socket's own private room
+				if (roomName !== socket.id) {
+					const clients = await io.in(roomName).fetchSockets();
+					const count = clients.length - 1; // subtract the leaving user
+					io.to(roomName).emit('viewer-count', count);
+				}
+			}
+			console.log('User disconnected');
+		});
+	});
+
+	server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
