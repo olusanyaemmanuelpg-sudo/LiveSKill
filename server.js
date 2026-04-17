@@ -36,6 +36,7 @@ app.use('/register', require('./routes/api/register'));
 app.use('/auth', require('./routes/api/auth'));
 app.use('/refresh', require('./routes/api/refresh'));
 app.use('/logout', require('./routes/api/logout'));
+app.use('/email-update', require('./routes/api/emailUpdate'));
 
 app.use('/livestream', require('./routes/api/livekitStream'));
 
