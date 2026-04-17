@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 //for socket.io
 const http = require('http');
 const { Server } = require('socket.io');
+const liveStreams = require('./controllers/livekit').liveStreams;
 
 //Connect to mongoDB
 connectDB();
@@ -37,6 +38,18 @@ app.use('/refresh', require('./routes/api/refresh'));
 app.use('/logout', require('./routes/api/logout'));
 
 app.use('/livestream', require('./routes/api/livekitStream'));
+
+// Public endpoint: fetch all currently active live streams
+app.get('/live-streams', (req, res) => {
+	const streams = Array.from(liveStreams.values());
+	res.json(streams);
+});
+
+// Called when host ends stream — removes it from the active list
+app.delete('/live-streams/:roomName', (req, res) => {
+	liveStreams.delete(req.params.roomName);
+	res.json({ success: true });
+});
 
 // Example protected route for testing JWT expiration/redirect
 app.use(verifyJWT);

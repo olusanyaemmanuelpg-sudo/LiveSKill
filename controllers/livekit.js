@@ -19,4 +19,6 @@ const createToken = async (userId, roomName, isHost = false) => {
 	return await at.toJwt();
 };
 
-module.exports = { createToken };
+const liveStreams = new Map();
+
+module.exports = { createToken, liveStreams };
