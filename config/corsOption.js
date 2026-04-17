@@ -2,7 +2,7 @@
 
 const whitelist = [
 	'http://localhost:5173',
-	'https://www.liveskill.dev',
+	'https://liveskill-frontend.onrender.com',
 	'http://localhost:3000',
 ];
 const corsOptions = {
